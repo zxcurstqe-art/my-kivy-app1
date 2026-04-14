@@ -1,36 +1,35 @@
-name: Build APK
+name: Build Android Project
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    - name: Install system dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip
-        pip install --upgrade pip
-        pip install buildozer cython
+      - name: Set up Android SDK (with aidl)
+        uses: android-actions/setup-android@v3
+        with:
+          sdk-manager-packages: |
+            platforms;android-34
+            build-tools;34.0.0
+            platform-tools
 
-    - name: Build APK
-      run: |
-        buildozer -v android debug
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: apk
-        path: bin/*.apk
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
