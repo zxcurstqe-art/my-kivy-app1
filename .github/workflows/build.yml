@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Set up Python
@@ -18,39 +18,16 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install system packages
+    - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y \
-          git zip unzip openjdk-17-jdk \
-          python3-pip wget curl
-
-    - name: Install Python deps
-      run: |
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip
         pip install --upgrade pip
         pip install buildozer cython
 
-    - name: Install Android SDK (fix AIDL)
-      run: |
-        mkdir -p $HOME/android-sdk
-        cd $HOME/android-sdk
-
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip commandlinetools-linux-11076708_latest.zip
-
-        mkdir -p cmdline-tools/latest
-        mv cmdline-tools/* cmdline-tools/latest/ || true
-
-        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-        echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-
-    - name: Install Buildozer Android requirements
-      run: |
-        yes | sdkmanager --licenses || true
-        sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
-
     - name: Build APK
-      run: buildozer android debug
+      run: |
+        buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
